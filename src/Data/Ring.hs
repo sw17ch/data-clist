@@ -66,7 +66,7 @@ module Data.Ring (
 
 -- | A functional ring type.
 data Ring a = Empty
-            | Ring a [a] [a] -- focus, left, right
+            | Ring [a] a [a]
     deriving (Eq)
 
 -- | The show instance prints a tuple of the
@@ -76,7 +76,7 @@ data Ring a = Empty
 -- next element to the right.
 instance (Show a) => Show (Ring a) where
     show ring = case balance ring of
-                     (Ring f l r) -> show (reverse l,f,r)
+                     (Ring l f r) -> show (reverse l,f,r)
                      Empty -> "Empty"
 
 {- Creating Rings -}
@@ -90,7 +90,7 @@ fromList :: [a] -> Ring a
 fromList [] = Empty
 fromList a@(i:is) = let len = length a
                         (r,l) = splitAt (len `div` 2) is
-                    in Ring i (reverse l) r
+                    in Ring (reverse l) i r
 
 {- Creating Lists -}
 
@@ -98,13 +98,13 @@ fromList a@(i:is) = let len = length a
 -- elements of the ring in a list.
 leftElements :: Ring a -> [a]
 leftElements Empty = []
-leftElements (Ring f l r) = f : (l ++ (reverse r))
+leftElements (Ring l f r) = f : (l ++ (reverse r))
 
 -- |Starting with the focus, go right and accumulate all
 -- elements of the ring in a list.
 rightElements :: Ring a -> [a]
 rightElements Empty = []
-rightElements (Ring f l r) = f : (r ++ (reverse l))
+rightElements (Ring l f r) = f : (r ++ (reverse l))
 
 -- |Make a list from a ring.
 toList :: Ring a -> [a]
@@ -119,54 +119,54 @@ toInfList = cycle . toList
 -- |Return the focus of the ring.
 focus :: Ring a -> Maybe a
 focus Empty = Nothing
-focus (Ring f _ _) = Just f
+focus (Ring _ f _) = Just f
 
 -- |Insert an element into the ring as the new focus. The
 -- old focus is now the next element to the right.
 insertR :: a -> Ring a -> Ring a
-insertR i Empty = Ring i [] []
-insertR i (Ring f l r) = Ring i l (f:r)
+insertR i Empty = Ring [] i []
+insertR i (Ring l f r) = Ring l i (f:r)
 
 -- |Insert an element into the ring as the new focus. The
 -- old focus is now the next element to the left.
 insertL :: a -> Ring a -> Ring a
-insertL i Empty = Ring i [] []
-insertL i (Ring f l r) = Ring i (f:l) r
+insertL i Empty = Ring [] i []
+insertL i (Ring l f r) = Ring (f:l) i r
 
 -- |Remove the focus from the ring. The new focus is the
 -- next element to the left.
 removeL :: Ring a -> Ring a
 removeL Empty = Empty
-removeL (Ring _ [] []) = Empty
-removeL (Ring _ (l:ls) rs) = Ring l ls rs
-removeL (Ring _ [] rs) = let (f:ls) = reverse rs
-                         in Ring f ls [] 
+removeL (Ring [] _ []) = Empty
+removeL (Ring (l:ls) _ rs) = Ring ls l rs
+removeL (Ring [] _ rs) = let (f:ls) = reverse rs
+                         in Ring ls f [] 
 
 -- |Remove the focus from the ring.
 removeR :: Ring a -> Ring a
 removeR Empty = Empty
-removeR (Ring _ [] []) = Empty
-removeR (Ring _ l (r:rs)) = Ring r l rs
-removeR (Ring _ l []) = let (f:rs) = reverse l
-                        in Ring f [] rs
+removeR (Ring [] _ []) = Empty
+removeR (Ring l _ (r:rs)) = Ring l r rs
+removeR (Ring l _ []) = let (f:rs) = reverse l
+                        in Ring [] f rs
 
 {- Manipulating Rotation -}
 
 -- |Rotate the focus to the previous (left) element.
 rotL :: Ring a -> Ring a
 rotL Empty = Empty
-rotL r@(Ring _ [] []) = r
-rotL (Ring f (l:ls) rs) = Ring l ls (f:rs)
-rotL (Ring f [] rs) = let (l:ls) = reverse rs
-                      in Ring l ls [f]
+rotL r@(Ring [] _ []) = r
+rotL (Ring (l:ls) f rs) = Ring ls l (f:rs)
+rotL (Ring [] f rs) = let (l:ls) = reverse rs
+                      in Ring ls l [f]
 
 -- |Rotate the focus to the next (right) element.
 rotR :: Ring a -> Ring a
 rotR Empty = Empty
-rotR r@(Ring _ [] []) = r
-rotR (Ring f ls (r:rs)) = Ring r (f:ls) rs
-rotR (Ring f ls []) = let (r:rs) = reverse ls
-                      in Ring r [f] rs
+rotR r@(Ring [] _ []) = r
+rotR (Ring ls f (r:rs)) = Ring (f:ls) r rs
+rotR (Ring ls f []) = let (r:rs) = reverse ls
+                      in Ring [f] r rs
 
 {- Manipulating Packing -}
 
@@ -177,12 +177,12 @@ balance = fromList . toList
 -- |Move all elements to the left side of the ring.
 packL :: Ring a -> Ring a
 packL Empty = Empty
-packL (Ring f l r) = Ring f (l ++ (reverse r)) []
+packL (Ring l f r) = Ring (l ++ (reverse r)) f []
 
 -- |Move all elements to the right side of the ring.
 packR :: Ring a -> Ring a
 packR Empty = Empty
-packR (Ring f l r) = Ring f [] (r ++ (reverse l))
+packR (Ring l f r) = Ring [] f (r ++ (reverse l))
 
 {- Information -}
 
@@ -194,4 +194,4 @@ isEmpty _ = False
 -- |Return the size of the ring.
 size :: Ring a -> Int
 size Empty = 0
-size (Ring _ l r) = 1 + (length l) + (length r)
+size (Ring l _ r) = 1 + (length l) + (length r)
