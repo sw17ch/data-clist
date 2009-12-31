@@ -85,7 +85,7 @@ instance (Show a) => Show (Ring a) where
 empty :: Ring a
 empty = Empty
 
--- |Make a ring from a list.
+-- |Make a (balanced) ring from a list.
 fromList :: [a] -> Ring a
 fromList [] = Empty
 fromList a@(i:is) = let len = length a
@@ -123,15 +123,15 @@ focus (Ring f _ _) = Just f
 
 -- |Insert an element into the ring as the new focus. The
 -- old focus is now the next element to the right.
-insertR :: Ring a -> a -> Ring a
-insertR Empty i = Ring i [] []
-insertR (Ring f l r) i = Ring i l (f:r)
+insertR :: a -> Ring a -> Ring a
+insertR i Empty = Ring i [] []
+insertR i (Ring f l r) = Ring i l (f:r)
 
 -- |Insert an element into the ring as the new focus. The
 -- old focus is now the next element to the left.
-insertL :: Ring a -> a -> Ring a
-insertL Empty i = Ring i [] []
-insertL (Ring f l r) i = Ring i (f:l) r
+insertL :: a -> Ring a -> Ring a
+insertL i Empty = Ring i [] []
+insertL i (Ring f l r) = Ring i (f:l) r
 
 -- |Remove the focus from the ring. The new focus is the
 -- next element to the left.
@@ -170,7 +170,7 @@ rotR (Ring f ls []) = let (r:rs) = reverse ls
 
 {- Manipulating Packing -}
 
--- |Balance the ring.
+-- |Balance the ring. Equivalent to `fromList . toList`
 balance :: Ring a -> Ring a
 balance = fromList . toList
 
