@@ -4,36 +4,28 @@ module Main where
 import Test.QuickCheck
 import Data.CircularList
 
+-- Make sure empty really is empty.
 prop_empty :: Bool
 prop_empty = length (toList empty) == 0
 
-prop_list :: [Int] -> Bool
-prop_list l = l == (toList . fromList $ l)
+-- Make sure converting to/from lists works.
+prop_list :: CList Int -> Bool
+prop_list c = c == (fromList . toList $ c)
 
-prop_focus :: [Int] -> Bool
-prop_focus l@(h:_) = (Just h) == (focus . fromList $ l)
-prop_focus e = Nothing == (focus . fromList $ e) -- Empty List
+prop_focus :: CList Int -> Int -> Bool
+prop_focus c v = (Just v) == (focus $ insertR v c)
 
-prop_rotL :: [Int] -> Bool
-prop_rotL l@(_:_) = (last l) : (init l) == (toList . rotL . fromList $ l)
-prop_rotL e = e == (toList . rotL . fromList $ e) -- Empty List
+prop_rot :: CList Int -> Bool
+prop_rot c = c == (rotR $ rotL c)
 
-prop_rotR :: [Int] -> Bool
-prop_rotR l@(h:ts) = ts ++ [h] == (toList . rotR . fromList $ l)
-prop_rotR e = e == (toList . rotR . fromList $ e) -- Empty List
+prop_packL :: CList Int -> Bool
+prop_packL c = c == (packL c)
 
-prop_balance :: [Int] -> Bool
-prop_balance l = l == (toList . balance . fromList $ l)
-
-prop_packL :: [Int] -> Bool
-prop_packL l = l == (toList . packL . fromList $ l)
-
-prop_packR :: [Int] -> Bool
-prop_packR l = l == (toList . packR . fromList $ l)
+prop_packR :: CList Int -> Bool
+prop_packR c = c == (packR c)
 
 prop_isEmpty :: [Int] -> Bool
-prop_isEmpty [] = True == (isEmpty . fromList $ []) 
-prop_isEmpty l  = False == (isEmpty . fromList $ l)
+prop_isEmpty l = null l == isEmpty (fromList l)
 
 prop_size :: [Int] -> Bool
 prop_size l = (length l) == (size . fromList $ l)
@@ -46,17 +38,11 @@ main = do
     putStrLn "prop_list"
     quickCheck prop_list
     
-    putStrLn "prop_rotR"
-    quickCheck prop_rotR
-
-    putStrLn "prop_rotL"
-    quickCheck prop_rotL
+    putStrLn "prop_rot"
+    quickCheck prop_rot
 
     putStrLn "prop_focus"
     quickCheck prop_focus
-
-    putStrLn "prop_balance"
-    quickCheck prop_balance
 
     putStrLn "prop_packL"
     quickCheck prop_packL
