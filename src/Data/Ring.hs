@@ -4,8 +4,7 @@ module Data.Ring (
     Ring,
     -- * Functions
     -- ** Creation of Rings
-    empty,
-    fromList,
+    empty, fromList,
     -- ** Converting Rings to Lists
     left, right, toList,
     -- ** Extraction and Accumulation
@@ -118,6 +117,7 @@ isEmpty :: Ring a -> Bool
 isEmpty Empty = True
 isEmpty _ = False
 
+-- |Return the size of the ring.
 size :: Ring a -> Int
 size Empty = 0
 size (Ring l _ r) = 1 + (length l) + (length r)
