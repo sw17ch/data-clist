@@ -5,8 +5,8 @@ Description: Simple functional bidirectional ring type.
              Given that the ring terminiology
              clashes with certain mathematical branches, we're using the term
              CList or CircularList instead.
-Version: 0.0.1
-License: LGPL
+Version: 0.0.2
+License: BSD3
 License-File: LICENSE
 Author: John Van Enk <vanenkj@gmail.com>
 Maintainer: John Van Enk <vanenkj@gmail.com>
@@ -23,6 +23,5 @@ Library
     Exposed-Modules:
         Data.CircularList
 
-    ghc-options:        -Wall -threaded
-    cc-options:         -Wall
+    ghc-options:        -Wall
     hs-source-dirs:     src
