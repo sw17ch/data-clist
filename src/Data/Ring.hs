@@ -64,20 +64,13 @@ module Data.Ring (
     isEmpty, size,
 ) where
 
+import Test.QuickCheck.Arbitrary
+import Test.QuickCheck.Gen
+
 -- | A functional ring type.
 data Ring a = Empty
             | Ring [a] a [a]
     deriving (Eq)
-
--- | The show instance prints a tuple of the
--- balanced ring where the left list's right-most
--- element is the first element to the left. The
--- left most-most element of the right list is the
--- next element to the right.
-instance (Show a) => Show (Ring a) where
-    show ring = case balance ring of
-                     (Ring l f r) -> show (reverse l,f,r)
-                     Empty -> "Empty"
 
 {- Creating Rings -}
 
@@ -195,3 +188,27 @@ isEmpty _ = False
 size :: Ring a -> Int
 size Empty = 0
 size (Ring l _ r) = 1 + (length l) + (length r)
+
+{- Instances -}
+
+-- | The show instance prints a tuple of the
+-- balanced ring where the left list's right-most
+-- element is the first element to the left. The
+-- left most-most element of the right list is the
+-- next element to the right.
+instance (Show a) => Show (Ring a) where
+    show ring = case balance ring of
+                     (Ring l f r) -> show (reverse l,f,r)
+                     Empty -> "Empty"
+
+instance Arbitrary a => Arbitrary (Ring a) where
+    arbitrary = frequency [(1, return Empty), (10, arbRing)]
+        where arbRing = do
+                l <- arbitrary
+                f <- arbitrary
+                r <- arbitrary
+                return $ Ring l f r
+    shrink (Ring l f r) = Empty : [ Ring l' f' r' | l' <- shrink l,
+                                                    f' <- shrink f,
+                                                    r' <- shrink r]
+    shrink Empty = []
