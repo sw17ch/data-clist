@@ -1,0 +1,23 @@
+Name: data-ring
+Synopsis: Simple functional ring type.
+Description: Simple functional ring type.
+Version: 0.0.1
+License: LGPL
+License-File: LICENSE
+Author: John Van Enk <vanenkj@gmail.com>
+Maintainer: John Van Enk <vanenkj@gmail.com>
+Stability: experimental
+Category: Data Structures
+Cabal-Version: >= 1.6
+Build-Type: Simple
+-- Package-URL: git://github.com/sw17ch/hsgcrypt.git 
+
+Library
+    Build-Depends: base >= 4 && < 5
+
+    Exposed-Modules:
+        Data.Ring
+
+    ghc-options:        -Wall -threaded
+    cc-options:         -Wall
+    hs-source-dirs:     src
