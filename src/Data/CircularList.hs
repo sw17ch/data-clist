@@ -45,13 +45,13 @@ This yeilds 1 as our new focus. Rotating this table left would return 0 to the
 focus position.
 
 -}
-module Data.Ring (
+module Data.CircularList (
     -- * Data Types
-    Ring,
+    CList,
     -- * Functions
-    -- ** Creation of Rings
+    -- ** Creation of CLists
     empty, fromList,
-    -- ** Converting Rings to Lists
+    -- ** Converting CLists to Lists
     leftElements, rightElements, toList, toInfList,
     -- ** Extraction and Accumulation
     focus, insertL, insertR,
@@ -68,126 +68,126 @@ import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
 
 -- | A functional ring type.
-data Ring a = Empty
-            | Ring [a] a [a]
+data CList a = Empty
+             | CList [a] a [a]
     deriving (Eq)
 
-{- Creating Rings -}
+{- Creating CLists -}
 
 -- | An empty ring.
-empty :: Ring a
+empty :: CList a
 empty = Empty
 
 -- |Make a (balanced) ring from a list.
-fromList :: [a] -> Ring a
+fromList :: [a] -> CList a
 fromList [] = Empty
 fromList a@(i:is) = let len = length a
                         (r,l) = splitAt (len `div` 2) is
-                    in Ring (reverse l) i r
+                    in CList (reverse l) i r
 
 {- Creating Lists -}
 
 -- |Starting with the focus, go left and accumulate all
 -- elements of the ring in a list.
-leftElements :: Ring a -> [a]
+leftElements :: CList a -> [a]
 leftElements Empty = []
-leftElements (Ring l f r) = f : (l ++ (reverse r))
+leftElements (CList l f r) = f : (l ++ (reverse r))
 
 -- |Starting with the focus, go right and accumulate all
 -- elements of the ring in a list.
-rightElements :: Ring a -> [a]
+rightElements :: CList a -> [a]
 rightElements Empty = []
-rightElements (Ring l f r) = f : (r ++ (reverse l))
+rightElements (CList l f r) = f : (r ++ (reverse l))
 
 -- |Make a list from a ring.
-toList :: Ring a -> [a]
+toList :: CList a -> [a]
 toList = rightElements
 
 -- |Make a ring into an infinite list.
-toInfList :: Ring a -> [a]
+toInfList :: CList a -> [a]
 toInfList = cycle . toList
 
 {- Extraction and Accumulation -}
 
 -- |Return the focus of the ring.
-focus :: Ring a -> Maybe a
+focus :: CList a -> Maybe a
 focus Empty = Nothing
-focus (Ring _ f _) = Just f
+focus (CList _ f _) = Just f
 
 -- |Insert an element into the ring as the new focus. The
 -- old focus is now the next element to the right.
-insertR :: a -> Ring a -> Ring a
-insertR i Empty = Ring [] i []
-insertR i (Ring l f r) = Ring l i (f:r)
+insertR :: a -> CList a -> CList a
+insertR i Empty = CList [] i []
+insertR i (CList l f r) = CList l i (f:r)
 
 -- |Insert an element into the ring as the new focus. The
 -- old focus is now the next element to the left.
-insertL :: a -> Ring a -> Ring a
-insertL i Empty = Ring [] i []
-insertL i (Ring l f r) = Ring (f:l) i r
+insertL :: a -> CList a -> CList a
+insertL i Empty = CList [] i []
+insertL i (CList l f r) = CList (f:l) i r
 
 -- |Remove the focus from the ring. The new focus is the
 -- next element to the left.
-removeL :: Ring a -> Ring a
+removeL :: CList a -> CList a
 removeL Empty = Empty
-removeL (Ring [] _ []) = Empty
-removeL (Ring (l:ls) _ rs) = Ring ls l rs
-removeL (Ring [] _ rs) = let (f:ls) = reverse rs
-                         in Ring ls f [] 
+removeL (CList [] _ []) = Empty
+removeL (CList (l:ls) _ rs) = CList ls l rs
+removeL (CList [] _ rs) = let (f:ls) = reverse rs
+                          in CList ls f [] 
 
 -- |Remove the focus from the ring.
-removeR :: Ring a -> Ring a
+removeR :: CList a -> CList a
 removeR Empty = Empty
-removeR (Ring [] _ []) = Empty
-removeR (Ring l _ (r:rs)) = Ring l r rs
-removeR (Ring l _ []) = let (f:rs) = reverse l
-                        in Ring [] f rs
+removeR (CList [] _ []) = Empty
+removeR (CList l _ (r:rs)) = CList l r rs
+removeR (CList l _ []) = let (f:rs) = reverse l
+                         in CList [] f rs
 
 {- Manipulating Rotation -}
 
 -- |Rotate the focus to the previous (left) element.
-rotL :: Ring a -> Ring a
+rotL :: CList a -> CList a
 rotL Empty = Empty
-rotL r@(Ring [] _ []) = r
-rotL (Ring (l:ls) f rs) = Ring ls l (f:rs)
-rotL (Ring [] f rs) = let (l:ls) = reverse rs
-                      in Ring ls l [f]
+rotL r@(CList [] _ []) = r
+rotL (CList (l:ls) f rs) = CList ls l (f:rs)
+rotL (CList [] f rs) = let (l:ls) = reverse rs
+                       in CList ls l [f]
 
 -- |Rotate the focus to the next (right) element.
-rotR :: Ring a -> Ring a
+rotR :: CList a -> CList a
 rotR Empty = Empty
-rotR r@(Ring [] _ []) = r
-rotR (Ring ls f (r:rs)) = Ring (f:ls) r rs
-rotR (Ring ls f []) = let (r:rs) = reverse ls
-                      in Ring [f] r rs
+rotR r@(CList [] _ []) = r
+rotR (CList ls f (r:rs)) = CList (f:ls) r rs
+rotR (CList ls f []) = let (r:rs) = reverse ls
+                       in CList [f] r rs
 
 {- Manipulating Packing -}
 
 -- |Balance the ring. Equivalent to `fromList . toList`
-balance :: Ring a -> Ring a
+balance :: CList a -> CList a
 balance = fromList . toList
 
 -- |Move all elements to the left side of the ring.
-packL :: Ring a -> Ring a
+packL :: CList a -> CList a
 packL Empty = Empty
-packL (Ring l f r) = Ring (l ++ (reverse r)) f []
+packL (CList l f r) = CList (l ++ (reverse r)) f []
 
 -- |Move all elements to the right side of the ring.
-packR :: Ring a -> Ring a
+packR :: CList a -> CList a
 packR Empty = Empty
-packR (Ring l f r) = Ring [] f (r ++ (reverse l))
+packR (CList l f r) = CList [] f (r ++ (reverse l))
 
 {- Information -}
 
 -- |Returns true if the ring is empty.
-isEmpty :: Ring a -> Bool
+isEmpty :: CList a -> Bool
 isEmpty Empty = True
 isEmpty _ = False
 
 -- |Return the size of the ring.
-size :: Ring a -> Int
+size :: CList a -> Int
 size Empty = 0
-size (Ring l _ r) = 1 + (length l) + (length r)
+size (CList l _ r) = 1 + (length l) + (length r)
 
 {- Instances -}
 
@@ -196,23 +196,23 @@ size (Ring l _ r) = 1 + (length l) + (length r)
 -- element is the first element to the left. The
 -- left most-most element of the right list is the
 -- next element to the right.
-instance (Show a) => Show (Ring a) where
+instance (Show a) => Show (CList a) where
     show ring = case balance ring of
-                     (Ring l f r) -> show (reverse l,f,r)
+                     (CList l f r) -> show (reverse l,f,r)
                      Empty -> "Empty"
 
-instance Arbitrary a => Arbitrary (Ring a) where
-    arbitrary = frequency [(1, return Empty), (10, arbRing)]
-        where arbRing = do
+instance Arbitrary a => Arbitrary (CList a) where
+    arbitrary = frequency [(1, return Empty), (10, arbCList)]
+        where arbCList = do
                 l <- arbitrary
                 f <- arbitrary
                 r <- arbitrary
-                return $ Ring l f r
-    shrink (Ring l f r) = Empty : [ Ring l' f' r' | l' <- shrink l,
+                return $ CList l f r
+    shrink (CList l f r) = Empty : [ CList l' f' r' | l' <- shrink l,
                                                     f' <- shrink f,
                                                     r' <- shrink r]
     shrink Empty = []
 
-instance Functor Ring where
+instance Functor CList where
     fmap _ Empty = Empty
-    fmap fn (Ring l f r) = (Ring (fmap fn l) (fn f) (fmap fn r))
+    fmap fn (CList l f r) = (CList (fmap fn l) (fn f) (fmap fn r))

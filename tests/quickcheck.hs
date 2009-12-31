@@ -2,7 +2,7 @@
 module Main where
 
 import Test.QuickCheck
-import Data.Ring
+import Data.CircularList
 
 prop_empty :: Bool
 prop_empty = length (toList empty) == 0
