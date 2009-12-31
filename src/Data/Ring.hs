@@ -56,7 +56,7 @@ module Data.Ring (
     -- ** Extraction and Accumulation
     focus, insertL, insertR,
     removeL, removeR,
-    -- ** Manipulation of Focus (selected slot)
+    -- ** Manipulation of Focus
     rotR, rotL,
     -- ** Manipulation of Packing
     balance, packL, packR,
@@ -212,3 +212,7 @@ instance Arbitrary a => Arbitrary (Ring a) where
                                                     f' <- shrink f,
                                                     r' <- shrink r]
     shrink Empty = []
+
+instance Functor Ring where
+    fmap _ Empty = Empty
+    fmap fn (Ring l f r) = (Ring (fmap fn l) (fn f) (fmap fn r))
