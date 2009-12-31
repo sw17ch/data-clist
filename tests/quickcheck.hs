@@ -10,6 +10,7 @@ prop_empty = length (toList empty) == 0
 prop_list :: [Int] -> Bool
 prop_list l = l == (toList . fromList $ l)
 
+-- toInfList
 -- left
 -- right
 

@@ -6,7 +6,7 @@ module Data.Ring (
     -- ** Creation of Rings
     empty, fromList,
     -- ** Converting Rings to Lists
-    left, right, toList,
+    left, right, toList, toInfList,
     -- ** Extraction and Accumulation
     focus, insert, remove,
     -- ** Manipulation of Focus (selected slot)
@@ -55,6 +55,10 @@ right (Ring l f r) = f : (r ++ (reverse l))
 -- |Make a list from a ring.
 toList :: Ring a -> [a]
 toList = right
+
+-- |Make a ring into an infinite list.
+toInfList :: Ring a -> [a]
+toInfList = cycle . toList
 
 {- Extraction and Accumulation -}
 
