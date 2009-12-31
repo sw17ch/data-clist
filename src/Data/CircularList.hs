@@ -1,5 +1,5 @@
 {- |
-A simple purely functional ring data type.
+A simple purely functional circular list, or ring, data type.
 
 Lets describe what we mean by 'ring'. A ring is a circular data structure
 such that if you continue rotating the ring, you'll eventually return to
@@ -16,7 +16,7 @@ the right.
 Our convention for this problem says that rotations to the right are a
 forward motion while rotations to the left are backward motions.
 
-We'll use the following ring for our examples:
+We'll use the following circular list for our examples:
 
 >   8 7 6
 >  9     5
@@ -74,11 +74,11 @@ data CList a = Empty
 
 {- Creating CLists -}
 
--- | An empty ring.
+-- | An empty CList.
 empty :: CList a
 empty = Empty
 
--- |Make a (balanced) ring from a list.
+-- |Make a (balanced) CList from a list.
 fromList :: [a] -> CList a
 fromList [] = Empty
 fromList a@(i:is) = let len = length a
@@ -88,45 +88,45 @@ fromList a@(i:is) = let len = length a
 {- Creating Lists -}
 
 -- |Starting with the focus, go left and accumulate all
--- elements of the ring in a list.
+-- elements of the CList in a list.
 leftElements :: CList a -> [a]
 leftElements Empty = []
 leftElements (CList l f r) = f : (l ++ (reverse r))
 
 -- |Starting with the focus, go right and accumulate all
--- elements of the ring in a list.
+-- elements of the CList in a list.
 rightElements :: CList a -> [a]
 rightElements Empty = []
 rightElements (CList l f r) = f : (r ++ (reverse l))
 
--- |Make a list from a ring.
+-- |Make a list from a CList.
 toList :: CList a -> [a]
 toList = rightElements
 
--- |Make a ring into an infinite list.
+-- |Make a CList into an infinite list.
 toInfList :: CList a -> [a]
 toInfList = cycle . toList
 
 {- Extraction and Accumulation -}
 
--- |Return the focus of the ring.
+-- |Return the focus of the CList.
 focus :: CList a -> Maybe a
 focus Empty = Nothing
 focus (CList _ f _) = Just f
 
--- |Insert an element into the ring as the new focus. The
+-- |Insert an element into the CList as the new focus. The
 -- old focus is now the next element to the right.
 insertR :: a -> CList a -> CList a
 insertR i Empty = CList [] i []
 insertR i (CList l f r) = CList l i (f:r)
 
--- |Insert an element into the ring as the new focus. The
+-- |Insert an element into the CList as the new focus. The
 -- old focus is now the next element to the left.
 insertL :: a -> CList a -> CList a
 insertL i Empty = CList [] i []
 insertL i (CList l f r) = CList (f:l) i r
 
--- |Remove the focus from the ring. The new focus is the
+-- |Remove the focus from the CList. The new focus is the
 -- next element to the left.
 removeL :: CList a -> CList a
 removeL Empty = Empty
@@ -135,7 +135,7 @@ removeL (CList (l:ls) _ rs) = CList ls l rs
 removeL (CList [] _ rs) = let (f:ls) = reverse rs
                           in CList ls f [] 
 
--- |Remove the focus from the ring.
+-- |Remove the focus from the CList.
 removeR :: CList a -> CList a
 removeR Empty = Empty
 removeR (CList [] _ []) = Empty
@@ -163,28 +163,28 @@ rotR (CList ls f []) = let (r:rs) = reverse ls
 
 {- Manipulating Packing -}
 
--- |Balance the ring. Equivalent to `fromList . toList`
+-- |Balance the CList. Equivalent to `fromList . toList`
 balance :: CList a -> CList a
 balance = fromList . toList
 
--- |Move all elements to the left side of the ring.
+-- |Move all elements to the left side of the CList.
 packL :: CList a -> CList a
 packL Empty = Empty
 packL (CList l f r) = CList (l ++ (reverse r)) f []
 
--- |Move all elements to the right side of the ring.
+-- |Move all elements to the right side of the CList.
 packR :: CList a -> CList a
 packR Empty = Empty
 packR (CList l f r) = CList [] f (r ++ (reverse l))
 
 {- Information -}
 
--- |Returns true if the ring is empty.
+-- |Returns true if the CList is empty.
 isEmpty :: CList a -> Bool
 isEmpty Empty = True
 isEmpty _ = False
 
--- |Return the size of the ring.
+-- |Return the size of the CList.
 size :: CList a -> Int
 size Empty = 0
 size (CList l _ r) = 1 + (length l) + (length r)
@@ -192,12 +192,12 @@ size (CList l _ r) = 1 + (length l) + (length r)
 {- Instances -}
 
 -- | The show instance prints a tuple of the
--- balanced ring where the left list's right-most
+-- balanced CList where the left list's right-most
 -- element is the first element to the left. The
 -- left most-most element of the right list is the
 -- next element to the right.
 instance (Show a) => Show (CList a) where
-    show ring = case balance ring of
+    show cl = case balance cl of
                      (CList l f r) -> show (reverse l,f,r)
                      Empty -> "Empty"
 
