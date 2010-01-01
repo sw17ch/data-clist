@@ -27,8 +27,8 @@ We'll use the following circular list for our examples:
 >     ^
 
 The pointer at the bottom represents our position at the table. The element
-currently in front of is is referred to as the `focus`. So, in this case, our
-focus is 0.
+currently in front of is is referred to as the `focus`. So, in this case,
+our focus is 0.
 
 If we were to rotate the table to the right using the `rotR` operation, we'd
 have the following table.
@@ -41,8 +41,8 @@ have the following table.
 >   0 1 2
 >     ^
 
-This yeilds 1 as our new focus. Rotating this table left would return 0 to the
-focus position.
+This yeilds 1 as our new focus. Rotating this table left would return 0 to
+the focus position.
 
 -}
 module Data.CircularList (
@@ -223,8 +223,8 @@ instance Arbitrary a => Arbitrary (CList a) where
                 r <- arbitrary
                 return $ CList l f r
     shrink (CList l f r) = Empty : [ CList l' f' r' | l' <- shrink l,
-                                                    f' <- shrink f,
-                                                    r' <- shrink r]
+                                                      f' <- shrink f,
+                                                      r' <- shrink r]
     shrink Empty = []
 
 instance Functor CList where
