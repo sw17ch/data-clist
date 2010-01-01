@@ -72,7 +72,6 @@ import Test.QuickCheck.Gen
 -- | A functional ring type.
 data CList a = Empty
              | CList [a] a [a]
-    deriving (Eq)
 
 {- Creating CLists -}
 
@@ -212,6 +211,9 @@ instance (Show a) => Show (CList a) where
     show cl = case balance cl of
                      (CList l f r) -> show (reverse l,f,r)
                      Empty -> "Empty"
+
+instance (Eq a) => Eq (CList a) where
+    a == b = (toList a) == (toList b)
 
 instance Arbitrary a => Arbitrary (CList a) where
     arbitrary = frequency [(1, return Empty), (10, arbCList)]
