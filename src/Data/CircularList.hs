@@ -50,7 +50,9 @@ module Data.CircularList (
     CList,
     -- * Functions
     -- ** Creation of CLists
-    empty, fromList,
+    empty, fromList, singleton,
+    -- ** Update of CList
+    update,
     -- ** Converting CLists to Lists
     leftElements, rightElements, toList, toInfList,
     -- ** Extraction and Accumulation
@@ -84,6 +86,16 @@ fromList [] = Empty
 fromList a@(i:is) = let len = length a
                         (r,l) = splitAt (len `div` 2) is
                     in CList (reverse l) i r
+
+singleton :: a -> CList a
+singleton a = CList [] a []
+
+{- Updating of CLists -}
+
+-- |Replaces the current focus with a new focus.
+update :: a -> CList a -> CList a
+update v Empty = CList [] v []
+update v (CList l _ r) = CList l v r
 
 {- Creating Lists -}
 
