@@ -2,10 +2,10 @@ Name: data-clist
 Synopsis: Simple functional ring type.
 Description: Simple functional bidirectional ring type.
 
-             Given that the ring terminiology
-             clashes with certain mathematical branches, we're using the term
-             CList or CircularList instead.
-Version: 0.0.3
+             Given that the ring terminiology clashes with certain
+             mathematical branches, we're using the term CList or
+             CircularList instead.
+Version: 0.0.4
 License: BSD3
 License-File: LICENSE
 Author: John Van Enk <vanenkj@gmail.com>
