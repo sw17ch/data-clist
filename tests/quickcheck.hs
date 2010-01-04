@@ -21,8 +21,18 @@ prop_packR :: CList Int -> Bool
 prop_packR c = c == (packR c)
 
 prop_size :: [Int] -> Bool
-prop_size [] = True
+prop_size [] = True -- Otherwise, _|_
 prop_size l = (length l) == (size . fromList $ l)
+
+prop_remL :: CList Int -> Bool
+prop_remL cl | 1 == size cl = True -- Otherwise, _|_
+             | otherwise = let f = focus cl
+                           in cl == (insertL f $ removeL cl)
+
+prop_remR :: CList Int -> Bool
+prop_remR cl | 1 == size cl = True -- Otherwise, _|_
+             | otherwise = let f = focus cl
+                           in cl == (insertR f $ removeR cl)
 
 main :: IO ()
 main = do
@@ -43,3 +53,9 @@ main = do
 
     putStrLn "prop_size"
     quickCheck prop_size
+
+    putStrLn "prop_remL"
+    quickCheck prop_remL
+
+    putStrLn "prop_remR"
+    quickCheck prop_remR
