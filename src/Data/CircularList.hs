@@ -58,6 +58,7 @@ module Data.CircularList (
     -- ** Extraction and Accumulation
     focus, insertL, insertR,
     removeL, removeR,
+    maybeRemoveL, maybeRemoveR,
     -- ** Manipulation of Focus
     rotR, rotL,
     -- ** Manipulation of Packing
@@ -133,12 +134,27 @@ removeL (CList (l:ls) _ rs) = CList ls l rs
 removeL (CList [] _ rs) = let (f:ls) = reverse rs
                           in CList ls f [] 
 
--- |Remove the focus from the CList.
+-- |Remove the focus from the CList. The new focus is the
+-- next element to the right.
 removeR :: CList a -> CList a
 removeR (CList [] _ []) = error "Cannot remove the last element of a CList"
 removeR (CList l _ (r:rs)) = CList l r rs
 removeR (CList l _ []) = let (f:rs) = reverse l
                          in CList [] f rs
+
+-- |Remove the focus from the CList. The new focus is the
+-- next element to the left. Return Nothing if the focus
+-- is the only element of the CList.
+maybeRemoveL :: CList a -> Maybe (CList a)
+maybeRemoveL (CList [] _ []) = Nothing
+maybeRemoveL l = Just (removeL l)
+
+-- |Remove the focus from the CList. The new focus is the
+-- next element to the right. Return Nothing if the focus
+-- is the only element of the CList.
+maybeRemoveR :: CList a -> Maybe (CList a)
+maybeRemoveR (CList [] _ []) = Nothing
+maybeRemoveR l = Just (removeR l)
 
 {- Manipulating Rotation -}
 
