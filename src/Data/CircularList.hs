@@ -50,7 +50,7 @@ module Data.CircularList (
     CList,
     -- * Functions
     -- ** Creation of CLists
-    fromList, singleton,
+    fromList, maybeFromList, singleton,
     -- ** Update of CList
     update,
     -- ** Converting CLists to Lists
@@ -80,6 +80,10 @@ fromList [] = error "CLists must have at least one element."
 fromList a@(i:is) = let len = length a
                         (r,l) = splitAt (len `div` 2) is
                     in CList (reverse l) i r
+
+maybeFromList :: [a] -> Maybe (CList a)
+maybeFromList [] = Nothing
+maybeFromList l = Just $ fromList l
 
 singleton :: a -> CList a
 singleton a = CList [] a []
