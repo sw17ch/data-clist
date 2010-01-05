@@ -68,6 +68,7 @@ module Data.CircularList (
 ) where
 
 import Test.QuickCheck.Arbitrary
+import Data.Function
 
 -- | A functional ring type.
 data CList a = CList [a] a [a]
@@ -102,12 +103,12 @@ update v (CList l _ r) = CList l v r
 -- |Starting with the focus, go left and accumulate all
 -- elements of the CList in a list.
 leftElements :: CList a -> [a]
-leftElements (CList l f r) = f : (l ++ (reverse r))
+leftElements (CList l f r) = f : (l ++ reverse r)
 
 -- |Starting with the focus, go right and accumulate all
 -- elements of the CList in a list.
 rightElements :: CList a -> [a]
-rightElements (CList l f r) = f : (r ++ (reverse l))
+rightElements (CList l f r) = f : (r ++ reverse l)
 
 -- |Make a list from a CList.
 toList :: CList a -> [a]
@@ -187,17 +188,17 @@ balance = fromList . toList
 
 -- |Move all elements to the left side of the CList.
 packL :: CList a -> CList a
-packL (CList l f r) = CList (l ++ (reverse r)) f []
+packL (CList l f r) = CList (l ++ reverse r) f []
 
 -- |Move all elements to the right side of the CList.
 packR :: CList a -> CList a
-packR (CList l f r) = CList [] f (r ++ (reverse l))
+packR (CList l f r) = CList [] f (r ++ reverse l)
 
 {- Information -}
 
 -- |Return the size of the CList.
 size :: CList a -> Int
-size (CList l _ r) = 1 + (length l) + (length r)
+size (CList l _ r) = 1 + length l + length r
 
 {- Instances -}
 
@@ -211,7 +212,7 @@ instance (Show a) => Show (CList a) where
                      (CList l f r) -> show (reverse l,f,r)
 
 instance (Eq a) => Eq (CList a) where
-    a == b = (toList a) == (toList b)
+    (==) = (==) `on` toList
 
 instance Arbitrary a => Arbitrary (CList a) where
     arbitrary = arbCList
@@ -225,4 +226,4 @@ instance Arbitrary a => Arbitrary (CList a) where
                                               r' <- shrink r]
 
 instance Functor CList where
-    fmap fn (CList l f r) = (CList (fmap fn l) (fn f) (fmap fn r))
+    fmap fn (CList l f r) = CList (fmap fn l) (fn f) (fmap fn r)
