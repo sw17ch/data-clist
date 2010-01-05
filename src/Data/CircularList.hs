@@ -81,10 +81,13 @@ fromList a@(i:is) = let len = length a
                         (r,l) = splitAt (len `div` 2) is
                     in CList (reverse l) i r
 
+-- |Make a (balanced) CList from a list.
+-- Return Nothing when the list is empty.
 maybeFromList :: [a] -> Maybe (CList a)
 maybeFromList [] = Nothing
 maybeFromList l = Just $ fromList l
 
+-- |Create a CList consisting of a single element.
 singleton :: a -> CList a
 singleton a = CList [] a []
 
