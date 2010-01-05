@@ -34,6 +34,11 @@ prop_remR cl | 1 == size cl = True -- Otherwise, _|_
              | otherwise = let f = focus cl
                            in cl == (insertR f $ removeR cl)
 
+prop_left_right :: CList Int -> Bool
+prop_left_right cl = let (_:lt) = leftElements  cl
+                         (_:rt) = rightElements cl
+                     in (reverse lt) == rt
+
 main :: IO ()
 main = do
     putStrLn "prop_list"
@@ -59,3 +64,6 @@ main = do
 
     putStrLn "prop_remR"
     quickCheck prop_remR
+
+    putStrLn "prop_left_right"
+    quickCheck prop_left_right
