@@ -59,14 +59,14 @@ module Data.CircularList (
     focus, insertL, insertR,
     removeL, removeR,
     -- ** Manipulation of Focus
-    allRotations, rotR, rotL,
+    allRotations, rotR, rotL, rotateTo,
     -- ** Manipulation of Packing
     balance, packL, packR,
     -- ** Information
     isEmpty, size,
 ) where
 
-import Data.List(inits,tails,unfoldr)
+import Data.List(find,inits,tails,unfoldr)
 import Control.Monad(join)
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
@@ -194,6 +194,11 @@ rotR (CList ls f []) = let (r:rs) = reverse ls
 mRotR :: CList a -> Maybe (CList a)
 mRotR (CList ls f (r:rs)) = Just $ CList (f:ls) r rs
 mRotR _ = Nothing
+
+-- |Rotate the 'CList' such that the specified element (if it exists)
+-- is focused.
+rotateTo :: (Eq a) => a -> CList a -> Maybe (CList a)
+rotateTo a = find (maybe False (a==) . focus) . toList . allRotations
 
 {- Manipulating Packing -}
 
