@@ -10,7 +10,7 @@ about its center axis (think of those convenient rotating platforms one
 often finds in an (Americanized) Chinese Restaurant).
 
 Only the closest item on the table is avialable to us. In order to reach
-other elements on the table, we need to rotate the table to the left or 
+other elements on the table, we need to rotate the table to the left or
 the right.
 
 Our convention for this problem says that rotations to the right are a
@@ -144,7 +144,7 @@ removeL Empty = Empty
 removeL (CList [] _ []) = Empty
 removeL (CList (l:ls) _ rs) = CList ls l rs
 removeL (CList [] _ rs) = let (f:ls) = reverse rs
-                          in CList ls f [] 
+                          in CList ls f []
 
 -- |Remove the focus from the CList.
 removeR :: CList a -> CList a
@@ -202,15 +202,15 @@ size (CList l _ r) = 1 + (length l) + (length r)
 
 {- Instances -}
 
--- | The show instance prints a tuple of the
--- balanced CList where the left list's right-most
--- element is the first element to the left. The
--- left most-most element of the right list is the
--- next element to the right.
 instance (Show a) => Show (CList a) where
-    show cl = case balance cl of
-                     (CList l f r) -> show (reverse l,f,r)
-                     Empty -> "Empty"
+ showsPrec d cl  = showParen (d > 10) $
+                   showString "fromList " . shows (toList cl)
+
+instance (Read a) => Read (CList a) where
+ readsPrec p = readParen (p > 10) $ \ r -> do
+   ("fromList",s) <- lex r
+   (xs,t) <- reads s
+   return (fromList xs,t)
 
 instance (Eq a) => Eq (CList a) where
     a == b = (toList a) == (toList b)
