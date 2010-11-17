@@ -66,7 +66,7 @@ module Data.CircularList (
     isEmpty, size,
 ) where
 
-import Data.List(find,inits,tails,unfoldr)
+import Data.List(find,unfoldr)
 import Control.Monad(join)
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
