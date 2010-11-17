@@ -59,13 +59,15 @@ module Data.CircularList (
     focus, insertL, insertR,
     removeL, removeR,
     -- ** Manipulation of Focus
-    rotR, rotL,
+    allRotations, rotR, rotL,
     -- ** Manipulation of Packing
     balance, packL, packR,
     -- ** Information
     isEmpty, size,
 ) where
 
+import Data.List(inits,tails,unfoldr)
+import Control.Monad(join)
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
 
@@ -156,6 +158,15 @@ removeR (CList l _ []) = let (f:rs) = reverse l
 
 {- Manipulating Rotation -}
 
+-- |Return all possible rotations of the provided 'CList', where the
+-- focus is the provided 'CList'.
+allRotations :: CList a -> CList (CList a)
+allRotations Empty = singleton Empty
+allRotations cl = CList ls cl rs
+  where
+    ls = unfoldr (fmap (join (,)) . mRotL) cl
+    rs = unfoldr (fmap (join (,)) . mRotR) cl
+
 -- |Rotate the focus to the previous (left) element.
 rotL :: CList a -> CList a
 rotL Empty = Empty
@@ -164,6 +175,12 @@ rotL (CList (l:ls) f rs) = CList ls l (f:rs)
 rotL (CList [] f rs) = let (l:ls) = reverse rs
                        in CList ls l [f]
 
+-- |A non-cyclic version of 'rotL'; that is, only rotate the focus if
+-- there is a previous (left) element to rotate to.
+mRotL :: CList a -> Maybe (CList a)
+mRotL (CList (l:ls) f rs) = Just $ CList ls l (f:rs)
+mRotL _ = Nothing
+
 -- |Rotate the focus to the next (right) element.
 rotR :: CList a -> CList a
 rotR Empty = Empty
@@ -171,6 +188,12 @@ rotR r@(CList [] _ []) = r
 rotR (CList ls f (r:rs)) = CList (f:ls) r rs
 rotR (CList ls f []) = let (r:rs) = reverse ls
                        in CList [f] r rs
+
+-- |A non-cyclic version of 'rotL'; that is, only rotate the focus if
+-- there is a previous (left) element to rotate to.
+mRotR :: CList a -> Maybe (CList a)
+mRotR (CList ls f (r:rs)) = Just $ CList (f:ls) r rs
+mRotR _ = Nothing
 
 {- Manipulating Packing -}
 
@@ -213,7 +236,15 @@ instance (Read a) => Read (CList a) where
    return (fromList xs,t)
 
 instance (Eq a) => Eq (CList a) where
-    a == b = (toList a) == (toList b)
+  a == b = any (identical a) . toList $ allRotations b
+
+-- |Determine if two 'CList's are structurally identical.
+identical :: (Eq a) => CList a -> CList a -> Bool
+identical Empty Empty = True
+identical (CList ls1 f1 rs1) (CList ls2 f2 rs2) = f1 == f2
+                                                  && ls1 == ls2
+                                                  && rs1 == rs2
+identical _ _ = False
 
 instance Arbitrary a => Arbitrary (CList a) where
     arbitrary = frequency [(1, return Empty), (10, arbCList)]
