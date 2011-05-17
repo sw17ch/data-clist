@@ -41,7 +41,7 @@ have the following table.
 >   0 1 2
 >     ^
 
-This yeilds 1 as our new focus. Rotating this table left would return 0 to
+This yields 1 as our new focus. Rotating this table left would return 0 to
 the focus position.
 
 -}
