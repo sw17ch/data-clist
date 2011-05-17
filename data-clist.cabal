@@ -5,7 +5,7 @@ Description: Simple functional bidirectional ring type.
              Given that the ring terminiology clashes with certain
              mathematical branches, we're using the term CList or
              CircularList instead.
-Version: 0.0.5
+Version: 0.0.6
 License: BSD3
 License-File: LICENSE
 Author: John Van Enk <vanenkj@gmail.com>
