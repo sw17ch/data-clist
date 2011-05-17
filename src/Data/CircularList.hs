@@ -59,7 +59,7 @@ module Data.CircularList (
     focus, insertL, insertR,
     removeL, removeR,
     -- ** Manipulation of Focus
-    allRotations, rotR, rotL, rotateTo,
+    allRotations, rotR, rotL, rotateTo, findRotateTo,
     -- ** Manipulation of Packing
     balance, packL, packR,
     -- ** Information
@@ -198,7 +198,12 @@ mRotR _ = Nothing
 -- |Rotate the 'CList' such that the specified element (if it exists)
 -- is focused.
 rotateTo :: (Eq a) => a -> CList a -> Maybe (CList a)
-rotateTo a = find (maybe False (a==) . focus) . toList . allRotations
+rotateTo a = findRotateTo (a==)
+
+-- |Attempt to rotate the 'CList' such that focused element matches
+-- the supplied predicate.
+findRotateTo :: (a -> Bool) -> CList a -> Maybe (CList a)
+findRotateTo p = find (maybe False p . focus) . toList . allRotations
 
 {- Manipulating Packing -}
 
