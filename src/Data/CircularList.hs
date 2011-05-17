@@ -254,9 +254,9 @@ filterL = filterCL removeL
 -- match the predicate when filtering.
 filterCL :: (CList a -> CList a) -> (a -> Bool) -> CList a -> CList a
 filterCL _ _ Empty = Empty
-filterCL rem p (CList l f r)
+filterCL rm p (CList l f r)
   | p f = cl'
-  | otherwise = rem cl'
+  | otherwise = rm cl'
   where
     cl' = CList (filter p l) f (filter p r)
 
