@@ -61,13 +61,15 @@ module Data.CircularList (
     -- ** Manipulation of Focus
     allRotations, rotR, rotL, rotN, rotNR, rotNL,
     rotateTo, findRotateTo,
+    -- ** List-like functions
+    filterR, filterL, foldrR, foldrL, foldlR, foldlL,
     -- ** Manipulation of Packing
     balance, packL, packR,
     -- ** Information
     isEmpty, size,
 ) where
 
-import Data.List(find,unfoldr)
+import Data.List(find,unfoldr,foldl')
 import Control.Monad(join)
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
@@ -235,6 +237,52 @@ rotateTo a = findRotateTo (a==)
 -- the supplied predicate.
 findRotateTo :: (a -> Bool) -> CList a -> Maybe (CList a)
 findRotateTo p = find (maybe False p . focus) . toList . allRotations
+
+{- List-like functions -}
+
+-- |Remove those elements that do not satisfy the supplied predicate,
+-- rotating to the right if the focus does not satisfy the predicate.
+filterR :: (a -> Bool) -> CList a -> CList a
+filterR = filterCL removeR
+
+-- |As with 'filterR', but rotates to the /left/ if the focus does not
+-- satisfy the predicate.
+filterL :: (a -> Bool) -> CList a -> CList a
+filterL = filterCL removeL
+
+-- |Abstract away what to do with the focused element if it doesn't
+-- match the predicate when filtering.
+filterCL :: (CList a -> CList a) -> (a -> Bool) -> CList a -> CList a
+filterCL _ _ Empty = Empty
+filterCL rem p (CList l f r)
+  | p f = cl'
+  | otherwise = rem cl'
+  where
+    cl' = CList (filter p l) f (filter p r)
+
+-- |A right-fold, rotating to the right through the CList.
+foldrR :: (a -> b -> b) -> b -> CList a -> b
+foldrR = foldrCL rightElements
+
+-- |A right-fold, rotating to the left through the CList.
+foldrL :: (a -> b -> b) -> b -> CList a -> b
+foldrL = foldrCL leftElements
+
+-- |Abstract away direction for a foldr.
+foldrCL :: (CList a -> [a]) -> (a -> b -> b) -> b -> CList a -> b
+foldrCL toL f a = foldr f a . toL
+
+-- |A (strict) left-fold, rotating to the right through the CList.
+foldlR :: (a -> b -> a) -> a -> CList b -> a
+foldlR = foldlCL rightElements
+
+-- |A (strict) left-fold, rotating to the left through the CList.
+foldlL :: (a -> b -> a) -> a -> CList b -> a
+foldlL = foldlCL leftElements
+
+-- |Abstract away direction for a foldl'.
+foldlCL :: (CList b -> [b]) -> (a -> b -> a) -> a -> CList b -> a
+foldlCL toL f a = foldl' f a . toL
 
 {- Manipulating Packing -}
 
