@@ -52,7 +52,7 @@ module Data.CircularList (
     -- ** Creation of CLists
     empty, fromList, singleton,
     -- ** Update of CList
-    update,
+    update, reverseDirection,
     -- ** Converting CLists to Lists
     leftElements, rightElements, toList, toInfList,
     -- ** Extraction and Accumulation
@@ -97,6 +97,11 @@ singleton a = CList [] a []
 update :: a -> CList a -> CList a
 update v Empty = CList [] v []
 update v (CList l _ r) = CList l v r
+
+-- |Reverse the direction of rotation.
+reverseDirection :: CList a -> CList a
+reverseDirection Empty = Empty
+reverseDirection (CList l f r) = CList r f l
 
 {- Creating Lists -}
 
