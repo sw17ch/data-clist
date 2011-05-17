@@ -59,7 +59,8 @@ module Data.CircularList (
     focus, insertL, insertR,
     removeL, removeR,
     -- ** Manipulation of Focus
-    allRotations, rotR, rotL, rotateTo, findRotateTo,
+    allRotations, rotR, rotL, rotN, rotNR, rotNL,
+    rotateTo, findRotateTo,
     -- ** Manipulation of Packing
     balance, packL, packR,
     -- ** Information
@@ -199,6 +200,31 @@ rotR (CList ls f []) = let (r:rs) = reverse ls
 mRotR :: CList a -> Maybe (CList a)
 mRotR (CList ls f (r:rs)) = Just $ CList (f:ls) r rs
 mRotR _ = Nothing
+
+-- |Rotate the focus the specified number of times; if the index is
+-- positive then it is rotated to the right; otherwise it is rotated
+-- to the left.
+rotN :: Int -> CList a -> CList a
+rotN _ Empty = Empty
+rotN _ cl@(CList [] _ []) = cl
+rotN n cl = iterate rot cl !! n'
+  where
+    n' = abs n
+    rot | n < 0     = rotL
+        | otherwise = rotR
+
+-- |A wrapper around 'rotN' that doesn't rotate the CList if @n <= 0@.
+rotNR :: Int -> CList a -> CList a
+rotNR n cl
+  | n <= 0 = cl
+  | otherwise = rotN n cl
+
+-- |Rotate the focus the specified number of times to the left (but
+-- don't rotate if @n <= 0@).
+rotNL :: Int -> CList a -> CList a
+rotNL n cl
+  | n <= 0 = cl
+  | otherwise = rotN (negate n) cl
 
 -- |Rotate the 'CList' such that the specified element (if it exists)
 -- is focused.
