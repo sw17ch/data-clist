@@ -41,7 +41,7 @@ have the following table.
 >   0 1 2
 >     ^
 
-This yeilds 1 as our new focus. Rotating this table left would return 0 to
+This yields 1 as our new focus. Rotating this table left would return 0 to
 the focus position.
 
 -}
@@ -52,21 +52,24 @@ module Data.CircularList (
     -- ** Creation of CLists
     empty, fromList, singleton,
     -- ** Update of CList
-    update,
+    update, reverseDirection,
     -- ** Converting CLists to Lists
     leftElements, rightElements, toList, toInfList,
     -- ** Extraction and Accumulation
     focus, insertL, insertR,
     removeL, removeR,
     -- ** Manipulation of Focus
-    allRotations, rotR, rotL, rotateTo,
+    allRotations, rotR, rotL, rotN, rotNR, rotNL,
+    rotateTo, findRotateTo,
+    -- ** List-like functions
+    filterR, filterL, foldrR, foldrL, foldlR, foldlL,
     -- ** Manipulation of Packing
     balance, packL, packR,
     -- ** Information
     isEmpty, size,
 ) where
 
-import Data.List(find,unfoldr)
+import Data.List(find,unfoldr,foldl')
 import Control.Monad(join)
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
@@ -97,6 +100,11 @@ singleton a = CList [] a []
 update :: a -> CList a -> CList a
 update v Empty = CList [] v []
 update v (CList l _ r) = CList l v r
+
+-- |Reverse the direction of rotation.
+reverseDirection :: CList a -> CList a
+reverseDirection Empty = Empty
+reverseDirection (CList l f r) = CList r f l
 
 {- Creating Lists -}
 
@@ -195,10 +203,86 @@ mRotR :: CList a -> Maybe (CList a)
 mRotR (CList ls f (r:rs)) = Just $ CList (f:ls) r rs
 mRotR _ = Nothing
 
+-- |Rotate the focus the specified number of times; if the index is
+-- positive then it is rotated to the right; otherwise it is rotated
+-- to the left.
+rotN :: Int -> CList a -> CList a
+rotN _ Empty = Empty
+rotN _ cl@(CList [] _ []) = cl
+rotN n cl = iterate rot cl !! n'
+  where
+    n' = abs n
+    rot | n < 0     = rotL
+        | otherwise = rotR
+
+-- |A wrapper around 'rotN' that doesn't rotate the CList if @n <= 0@.
+rotNR :: Int -> CList a -> CList a
+rotNR n cl
+  | n <= 0 = cl
+  | otherwise = rotN n cl
+
+-- |Rotate the focus the specified number of times to the left (but
+-- don't rotate if @n <= 0@).
+rotNL :: Int -> CList a -> CList a
+rotNL n cl
+  | n <= 0 = cl
+  | otherwise = rotN (negate n) cl
+
 -- |Rotate the 'CList' such that the specified element (if it exists)
 -- is focused.
 rotateTo :: (Eq a) => a -> CList a -> Maybe (CList a)
-rotateTo a = find (maybe False (a==) . focus) . toList . allRotations
+rotateTo a = findRotateTo (a==)
+
+-- |Attempt to rotate the 'CList' such that focused element matches
+-- the supplied predicate.
+findRotateTo :: (a -> Bool) -> CList a -> Maybe (CList a)
+findRotateTo p = find (maybe False p . focus) . toList . allRotations
+
+{- List-like functions -}
+
+-- |Remove those elements that do not satisfy the supplied predicate,
+-- rotating to the right if the focus does not satisfy the predicate.
+filterR :: (a -> Bool) -> CList a -> CList a
+filterR = filterCL removeR
+
+-- |As with 'filterR', but rotates to the /left/ if the focus does not
+-- satisfy the predicate.
+filterL :: (a -> Bool) -> CList a -> CList a
+filterL = filterCL removeL
+
+-- |Abstract away what to do with the focused element if it doesn't
+-- match the predicate when filtering.
+filterCL :: (CList a -> CList a) -> (a -> Bool) -> CList a -> CList a
+filterCL _ _ Empty = Empty
+filterCL rm p (CList l f r)
+  | p f = cl'
+  | otherwise = rm cl'
+  where
+    cl' = CList (filter p l) f (filter p r)
+
+-- |A right-fold, rotating to the right through the CList.
+foldrR :: (a -> b -> b) -> b -> CList a -> b
+foldrR = foldrCL rightElements
+
+-- |A right-fold, rotating to the left through the CList.
+foldrL :: (a -> b -> b) -> b -> CList a -> b
+foldrL = foldrCL leftElements
+
+-- |Abstract away direction for a foldr.
+foldrCL :: (CList a -> [a]) -> (a -> b -> b) -> b -> CList a -> b
+foldrCL toL f a = foldr f a . toL
+
+-- |A (strict) left-fold, rotating to the right through the CList.
+foldlR :: (a -> b -> a) -> a -> CList b -> a
+foldlR = foldlCL rightElements
+
+-- |A (strict) left-fold, rotating to the left through the CList.
+foldlL :: (a -> b -> a) -> a -> CList b -> a
+foldlL = foldlCL leftElements
+
+-- |Abstract away direction for a foldl'.
+foldlCL :: (CList b -> [b]) -> (a -> b -> a) -> a -> CList b -> a
+foldlCL toL f a = foldl' f a . toL
 
 {- Manipulating Packing -}
 
