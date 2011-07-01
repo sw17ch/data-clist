@@ -70,6 +70,7 @@ module Data.CircularList (
 ) where
 
 import Data.List(find,unfoldr,foldl')
+import Control.DeepSeq(NFData(..))
 import Control.Monad(join)
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
@@ -326,6 +327,12 @@ instance (Read a) => Read (CList a) where
 
 instance (Eq a) => Eq (CList a) where
   a == b = any (identical a) . toList $ allRotations b
+
+instance (NFData a) => NFData (CList a) where
+  rnf Empty         = ()
+  rnf (CList l f r) = rnf f
+                      `seq` rnf l
+                      `seq` rnf r
 
 -- |Determine if two 'CList's are structurally identical.
 identical :: (Eq a) => CList a -> CList a -> Bool
