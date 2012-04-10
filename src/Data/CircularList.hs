@@ -326,21 +326,13 @@ instance (Read a) => Read (CList a) where
    return (fromList xs,t)
 
 instance (Eq a) => Eq (CList a) where
-  a == b = any (identical a) . toList $ allRotations b
+  a == b = any ((toList a ==) . toList) . toList $ allRotations b
 
 instance (NFData a) => NFData (CList a) where
   rnf Empty         = ()
   rnf (CList l f r) = rnf f
                       `seq` rnf l
                       `seq` rnf r
-
--- |Determine if two 'CList's are structurally identical.
-identical :: (Eq a) => CList a -> CList a -> Bool
-identical Empty Empty = True
-identical (CList ls1 f1 rs1) (CList ls2 f2 rs2) = f1 == f2
-                                                  && ls1 == ls2
-                                                  && rs1 == rs2
-identical _ _ = False
 
 instance Arbitrary a => Arbitrary (CList a) where
     arbitrary = frequency [(1, return Empty), (10, arbCList)]
