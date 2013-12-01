@@ -5,14 +5,14 @@ Description: Simple functional bidirectional ring type.
              Given that the ring terminiology clashes with certain
              mathematical branches, we're using the term CList or
              CircularList instead.
-Version: 0.0.7.2
+Version: 0.0.7.3
 License: BSD3
 License-File: LICENSE
 Author: John Van Enk <vanenkj@gmail.com>
 Maintainer: John Van Enk <vanenkj@gmail.com>
 Stability: experimental
 Category: Data Structures
-Cabal-Version: >= 1.6
+Cabal-Version: >= 1.18
 Build-Type: Simple
 Homepage: https://github.com/sw17ch/data-clist
 
@@ -23,7 +23,7 @@ source-repository head
 Library
     Build-Depends: base >= 4 && < 5,
                    deepseq >= 1.1 && < 1.4,
-                   QuickCheck >= 2.4 && < 2.5
+                   QuickCheck >= 2.4 && < 2.7
 
     Exposed-Modules:
         Data.CircularList
@@ -31,3 +31,11 @@ Library
     ghc-options:        -Wall
     gHC-prof-options:   -prof -auto-all
     hs-source-dirs:     src
+
+Test-Suite data-clist-tests
+    Type: exitcode-stdio-1.0
+    Hs-Source-Dirs: tests
+    Main-Is:        quickcheck.hs
+    Build-Depends:  base >= 4 && < 5,
+                    data-clist,
+                    QuickCheck >= 2.4 && < 2.7
