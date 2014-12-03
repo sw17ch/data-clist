@@ -9,7 +9,7 @@ Version: 0.0.7.3
 License: BSD3
 License-File: LICENSE
 Author: John Van Enk <vanenkj@gmail.com>
-Maintainer: John Van Enk <vanenkj@gmail.com>
+Maintainer: Jeremy Huffman <jeremy@jeremyhuffman.com>, John Van Enk <vanenkj@gmail.com>
 Stability: experimental
 Category: Data Structures
 Cabal-Version: >= 1.6
