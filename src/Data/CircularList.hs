@@ -69,11 +69,16 @@ module Data.CircularList (
     isEmpty, size,
 ) where
 
+import Control.Applicative(pure, (<$>),(<*>))
 import Data.List(find,unfoldr,foldl')
 import Control.DeepSeq(NFData(..))
 import Control.Monad(join)
+import qualified Data.Traversable as T
+import qualified Data.Foldable as F
+
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
+
 
 -- | A functional ring type.
 data CList a = Empty
@@ -349,3 +354,13 @@ instance Arbitrary a => Arbitrary (CList a) where
 instance Functor CList where
     fmap _ Empty = Empty
     fmap fn (CList l f r) = (CList (fmap fn l) (fn f) (fmap fn r))
+
+instance F.Foldable CList where
+  foldMap = T.foldMapDefault
+
+instance T.Traversable CList where
+  -- | traverses the list from left to right, starting at the focus
+  traverse _ Empty         = pure Empty
+  traverse g (CList l f r) = (\f' r' l' -> CList l' f' r') <$> g f
+                                                           <*> T.traverse g r
+                                                           <*> T.traverse g l
