@@ -69,7 +69,8 @@ module Data.CircularList (
     isEmpty, size,
 ) where
 
-import Control.Applicative(pure, (<$>),(<*>))
+import Control.Applicative hiding (empty)
+import Prelude
 import Data.List(find,unfoldr,foldl')
 import Control.DeepSeq(NFData(..))
 import Control.Monad(join)
