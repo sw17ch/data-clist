@@ -55,12 +55,13 @@ module Data.CircularList (
     update, reverseDirection,
     -- ** Converting CLists to Lists
     leftElements, rightElements, toList, toInfList,
+    minRep, minRepN,
     -- ** Extraction and Accumulation
     focus, insertL, insertR,
     removeL, removeR,
     -- ** Manipulation of Focus
-    allRotations, rotR, rotL, rotN, rotNR, rotNL,
-    rotateTo, findRotateTo,
+    allRotations, allRotationsN, rotR, rotL, rotN,
+    rotNR, rotNL, rotateTo, findRotateTo,
     -- ** List-like functions
     filterR, filterL, foldrR, foldrL, foldlR, foldlL,
     -- ** Manipulation of Packing
@@ -73,7 +74,7 @@ import Control.Applicative hiding (empty)
 import Prelude
 import Data.List(find,unfoldr,foldl')
 import Control.DeepSeq(NFData(..))
-import Control.Monad(join)
+import Control.Monad(join,(>=>))
 import qualified Data.Traversable as T
 import qualified Data.Foldable as F
 
@@ -135,6 +136,19 @@ toList = rightElements
 toInfList :: CList a -> [a]
 toInfList = cycle . toList
 
+-- |Find the minimal representative of a CList, allowing only multiples
+-- of n rotations.
+minRepN :: (Ord a) => Int -> CList a -> [a]
+minRepN n cl = minimum $ toList cl : (map toList ls ++ map toList rs)
+  where
+    ls = unfoldr (fmap (join (,)) . (applyN n mRotL)) cl
+    rs = unfoldr (fmap (join (,)) . (applyN n mRotR)) cl
+    applyN m = foldr1 (>=>) . replicate m
+
+-- |Find the minimal representative of a CList.
+minRep :: (Ord a) => CList a -> [a]
+minRep = minRepN 1
+
 {- Extraction and Accumulation -}
 
 -- |Return the focus of the CList.
@@ -173,14 +187,21 @@ removeR (CList l _ []) = let (f:rs) = reverse l
 
 {- Manipulating Rotation -}
 
+-- |Return all possible rotations of the provided 'CList', allowing only
+-- multiples on n rotations, and where the focus is the provided 'CList'.
+-- Note that this only makes sense if n divides the length of the list.
+allRotationsN :: Int -> CList a -> CList (CList a)
+allRotationsN _ Empty = singleton Empty
+allRotationsN n cl = CList ls cl rs
+  where
+    ls = unfoldr (fmap (join (,)) . (applyN n mRotL)) cl
+    rs = unfoldr (fmap (join (,)) . (applyN n mRotR)) cl
+    applyN m = foldr1 (>=>) . replicate m
+
 -- |Return all possible rotations of the provided 'CList', where the
 -- focus is the provided 'CList'.
 allRotations :: CList a -> CList (CList a)
-allRotations Empty = singleton Empty
-allRotations cl = CList ls cl rs
-  where
-    ls = unfoldr (fmap (join (,)) . mRotL) cl
-    rs = unfoldr (fmap (join (,)) . mRotR) cl
+allRotations = allRotationsN 1
 
 -- |Rotate the focus to the previous (left) element.
 rotL :: CList a -> CList a
@@ -333,6 +354,9 @@ instance (Read a) => Read (CList a) where
 
 instance (Eq a) => Eq (CList a) where
   a == b = any ((toList a ==) . toList) . toList $ allRotations b
+
+instance (Ord a) => Ord (CList a) where
+  a `compare` b = minRep a `compare` minRep b
 
 instance (NFData a) => NFData (CList a) where
   rnf Empty         = ()
