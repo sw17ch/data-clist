@@ -140,7 +140,7 @@ toInfList = cycle . toList
 -- of n rotations.
 minRepN :: (Ord a) => Int -> CList a -> [a]
 minRepN _ Empty = []
-minRepN n cl = minimum . map toList $ concat [ls, [cl], rs]
+minRepN n cl = minimum . map toList $ cl:(ls ++ rs)
   where
     ls = leftRotationsN n cl
     rs = rightRotationsN n cl
