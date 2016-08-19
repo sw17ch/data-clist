@@ -55,12 +55,13 @@ module Data.CircularList (
     update, reverseDirection,
     -- ** Converting CLists to Lists
     leftElements, rightElements, toList, toInfList,
+    minRep, minRepN,
     -- ** Extraction and Accumulation
     focus, insertL, insertR,
     removeL, removeR,
     -- ** Manipulation of Focus
-    allRotations, rotR, rotL, rotN, rotNR, rotNL,
-    rotateTo, findRotateTo,
+    allRotations, allRotationsN, rotR, rotL, rotN,
+    rotNR, rotNL, rotateTo, findRotateTo,
     -- ** List-like functions
     filterR, filterL, foldrR, foldrL, foldlR, foldlL,
     -- ** Manipulation of Packing
@@ -73,7 +74,7 @@ import Control.Applicative hiding (empty)
 import Prelude
 import Data.List(find,unfoldr,foldl')
 import Control.DeepSeq(NFData(..))
-import Control.Monad(join)
+import Control.Monad(join,(>=>))
 import qualified Data.Traversable as T
 import qualified Data.Foldable as F
 
@@ -119,13 +120,13 @@ reverseDirection (CList l f r) = CList r f l
 -- elements of the CList in a list.
 leftElements :: CList a -> [a]
 leftElements Empty = []
-leftElements (CList l f r) = f : (l ++ (reverse r))
+leftElements (CList l f r) = f : (l ++ reverse r)
 
 -- |Starting with the focus, go right and accumulate all
 -- elements of the CList in a list.
 rightElements :: CList a -> [a]
 rightElements Empty = []
-rightElements (CList l f r) = f : (r ++ (reverse l))
+rightElements (CList l f r) = f : (r ++ reverse l)
 
 -- |Make a list from a CList.
 toList :: CList a -> [a]
@@ -134,6 +135,19 @@ toList = rightElements
 -- |Make a CList into an infinite list.
 toInfList :: CList a -> [a]
 toInfList = cycle . toList
+
+-- |Find the minimal representative of a CList, allowing only multiples
+-- of n rotations.
+minRepN :: (Ord a) => Int -> CList a -> [a]
+minRepN _ Empty = []
+minRepN n cl = minimum . map toList $ cl:(ls ++ rs)
+  where
+    ls = leftRotationsN n cl
+    rs = rightRotationsN n cl
+
+-- |Find the minimal representative of a CList.
+minRep :: (Ord a) => CList a -> [a]
+minRep = minRepN 1
 
 {- Extraction and Accumulation -}
 
@@ -173,14 +187,34 @@ removeR (CList l _ []) = let (f:rs) = reverse l
 
 {- Manipulating Rotation -}
 
+-- |Return all possible rotations of the provided 'CList', allowing only
+-- multiples of n rotations, and where the focus is the provided 'CList'.
+-- Note that this only makes sense if n divides the length of the list.
+allRotationsN :: Int -> CList a -> CList (CList a)
+allRotationsN _ Empty = singleton Empty
+allRotationsN n cl = CList ls cl rs
+  where
+    ls = leftRotationsN n cl
+    rs = rightRotationsN n cl
+
 -- |Return all possible rotations of the provided 'CList', where the
 -- focus is the provided 'CList'.
 allRotations :: CList a -> CList (CList a)
-allRotations Empty = singleton Empty
-allRotations cl = CList ls cl rs
+allRotations = allRotationsN 1
+
+-- |Return all possible rotations of the provided 'CList', allowing only
+-- multiples of n rotations, going to the left.
+leftRotationsN :: Int -> CList a -> [CList a]
+leftRotationsN n = unfoldr (fmap (join (,)) . applyN n mRotL)
   where
-    ls = unfoldr (fmap (join (,)) . mRotL) cl
-    rs = unfoldr (fmap (join (,)) . mRotR) cl
+    applyN m = foldr1 (>=>) . replicate m
+
+-- |Return all possible rotations of the provided 'CList', allowing only
+-- multiples of n rotations, going to the right.
+rightRotationsN :: Int -> CList a -> [CList a]
+rightRotationsN n = unfoldr (fmap (join (,)) . applyN n mRotR)
+  where
+    applyN m = foldr1 (>=>) . replicate m
 
 -- |Rotate the focus to the previous (left) element.
 rotL :: CList a -> CList a
@@ -300,12 +334,12 @@ balance = fromList . toList
 -- |Move all elements to the left side of the CList.
 packL :: CList a -> CList a
 packL Empty = Empty
-packL (CList l f r) = CList (l ++ (reverse r)) f []
+packL (CList l f r) = CList (l ++ reverse r) f []
 
 -- |Move all elements to the right side of the CList.
 packR :: CList a -> CList a
 packR Empty = Empty
-packR (CList l f r) = CList [] f (r ++ (reverse l))
+packR (CList l f r) = CList [] f (r ++ reverse l)
 
 {- Information -}
 
@@ -317,7 +351,7 @@ isEmpty _ = False
 -- |Return the size of the CList.
 size :: CList a -> Int
 size Empty = 0
-size (CList l _ r) = 1 + (length l) + (length r)
+size (CList l _ r) = 1 + length l + length r
 
 {- Instances -}
 
@@ -333,6 +367,9 @@ instance (Read a) => Read (CList a) where
 
 instance (Eq a) => Eq (CList a) where
   a == b = any ((toList a ==) . toList) . toList $ allRotations b
+
+instance (Ord a) => Ord (CList a) where
+  a `compare` b = minRep a `compare` minRep b
 
 instance (NFData a) => NFData (CList a) where
   rnf Empty         = ()
@@ -354,7 +391,7 @@ instance Arbitrary a => Arbitrary (CList a) where
 
 instance Functor CList where
     fmap _ Empty = Empty
-    fmap fn (CList l f r) = (CList (fmap fn l) (fn f) (fmap fn r))
+    fmap fn (CList l f r) = CList (fmap fn l) (fn f) (fmap fn r)
 
 instance F.Foldable CList where
   foldMap = T.foldMapDefault
