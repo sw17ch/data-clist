@@ -37,7 +37,7 @@ main = do
 
     putStrLn "prop_list"
     quickCheck prop_list
-    
+
     putStrLn "prop_rot"
     quickCheck prop_rot
 
