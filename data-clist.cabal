@@ -29,5 +29,4 @@ Library
         Data.CircularList
 
     ghc-options:        -Wall
-    gHC-prof-options:   -prof -auto-all
     hs-source-dirs:     src
