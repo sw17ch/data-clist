@@ -1,8 +1,20 @@
-{-# OPTIONS -Wall #-}
+{-# OPTIONS -Wall -Wno-orphans #-}
 module Main where
 
 import Test.QuickCheck
-import Data.CircularList
+import Data.CircularList.Internal
+
+instance Arbitrary a => Arbitrary (CList a) where
+    arbitrary = frequency [(1, return Empty), (10, arbCList)]
+        where arbCList = do
+                l <- arbitrary
+                f <- arbitrary
+                r <- arbitrary
+                return $ CList l f r
+    shrink (CList l f r) = Empty : [ CList l' f' r' | l' <- shrink l,
+                                                      f' <- shrink f,
+                                                      r' <- shrink r]
+    shrink Empty = []
 
 -- Make sure empty really is empty.
 prop_empty :: Bool
