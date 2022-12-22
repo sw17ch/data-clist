@@ -10,10 +10,10 @@ instance Arbitrary a => Arbitrary (CList a) where
                 l <- arbitrary
                 f <- arbitrary
                 r <- arbitrary
-                return $ CList l f r
-    shrink (CList l f r) = Empty : [ CList l' f' r' | l' <- shrink l,
+                return $ CList l f r (length l + 1 + length r)
+    shrink (CList l f r _) = Empty : [ CList l' f' r' (length l' + 1 + length r') | l' <- shrink l,
                                                       f' <- shrink f,
-                                                      r' <- shrink r]
+                                                      r' <- shrink r ]
     shrink Empty = []
 
 -- Make sure empty really is empty.
